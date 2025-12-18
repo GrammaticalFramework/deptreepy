@@ -245,6 +245,6 @@ def echo_conllu_file(file: Iterable[str]):
                 print('INVALID', line)
 
 
-if __name__ == '__mainz__':
+if __name__ == '__main__':
     echo_conllu_file(sys.stdin)
 
