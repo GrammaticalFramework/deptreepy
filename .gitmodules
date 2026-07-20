@@ -1,0 +1,4 @@
+[submodule "korpsearch"]
+	path = korpsearch
+	url = git@github.com:thinhkieu725/korpsearch.git
+	branch = depsearch_submodule_for_deptreepy
