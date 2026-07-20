@@ -797,7 +797,7 @@ def from_script(filename: str) -> Operation:
         return parse_operation_pipe(script.read())
             
 
-def parse_operation(ss: list[str]) -> Operation:
+def parse_operation(ss: list[str], search_id: str | None = None) -> Operation:
     "operation parser for files and command line arguments"
     match ss:
         case ['count_wordlines', *ww]:
@@ -827,7 +827,20 @@ def parse_operation(ss: list[str]) -> Operation:
             return find_partial_subtrees(
                 parse_pattern(' '.join(['PATH'] + [*ww])).subtrees)   
         case ['extract_sentences']:
-            return extract_sentences
+            if search_id is None:
+                context_size_pkl_path = TEMP_VOLUME_PATH / Path("context_size.pkl")
+            else:
+                context_size_pkl_path = TEMP_VOLUME_PATH / Path(search_id) / Path(f"context_size.pkl")
+            context_size = 0
+            if os.path.exists(context_size_pkl_path):
+                with open(context_size_pkl_path, "rb") as f:
+                    context_size = pickle.load(f)
+            if context_size > 0:
+                return extract_sentences_with_context(search_id=search_id, include_metadata=True)
+            elif search_id is not None:
+                return extract_sentences_with_metadata
+            else:
+                return extract_sentences
         case ['trees2conllu']:
             return trees2conllu
         case ['trees2wordlines']:
@@ -862,27 +875,49 @@ def parse_operation(ss: list[str]) -> Operation:
             raise ParseError(' '.join(['operation'] + ss + ['not matched']))
 
 
-def parse_operation_pipe(s: str) -> Operation:
+def parse_operation_pipe(s: str, search_id: str | None = None) -> Operation:
     "parsing operation pipes separated by |"
-    return pipe([parse_operation(op.split()) for op in s.split('|')])
+    return pipe([parse_operation(op.split(), search_id) for op in s.split('|')])
 
 
-def preprocess_operation(op: Operation) -> Operation:
+def preprocess_operation(op: Operation, search_id: str | None) -> Operation:
     "convert file-like input into type expected by operation"
+    if search_id is None:
+        context_size_pkl_path = TEMP_VOLUME_PATH / Path("context_size.pkl")
+    else:
+        context_size_pkl_path = TEMP_VOLUME_PATH / Path(search_id) / Path(f"context_size.pkl")
+    context_size = 0
+    if os.path.exists(context_size_pkl_path):
+        with open(context_size_pkl_path, "rb") as f:
+            context_size = pickle.load(f)
     if op.argtype == Iterable[WordLine]:
         return pipe([conllu2wordlines, op])
     elif op.argtype == Iterable[DepTree]:
-        return pipe([conllu2trees, op])
+        if context_size > 0:
+            return pipe([conllu2treeswithindex(search_id), op])
+        else:
+            return pipe([conllu2trees, op])
     else:
         return op
 
     
-def postprocess_operation(op: Operation) -> Operation:
+def postprocess_operation(op: Operation, search_id: str | None) -> Operation:
     "convert the output of operations to strings"
+    if search_id is None:
+        context_size_pkl_path = TEMP_VOLUME_PATH / Path("context_size.pkl")
+    else:
+        context_size_pkl_path = TEMP_VOLUME_PATH / Path(search_id) / Path(f"context_size.pkl")
+    context_size = 0
+    if os.path.exists(context_size_pkl_path):
+        with open(context_size_pkl_path, "rb") as f:
+            context_size = pickle.load(f)
     if op.valtype == Iterable[WordLine]:
         return pipe([op, wordlines2strs])
     elif op.valtype == Iterable[DepTree]:
-        return pipe([op, trees2strs])
+        if context_size > 0:
+            return pipe([op, treeswithindex2strs(search_id=search_id)])
+        else:
+            return pipe([op, trees2strs])
     elif op.valtype == Iterable[list[WordLine]]:
         return pipe([op, wordliness2conllu]) 
     else:
@@ -893,14 +928,12 @@ def postprocess_operation(op: Operation) -> Operation:
 # invalid_operation = pipe([conllu2wordlines, conllu2wordlines])
 
 
-def execute_pipe_on_strings(command: str, strs: Iterable[str]):
+def execute_pipe_on_strings(command: str, search_id: str | None, strs: Iterable[str]) -> None:
     "apply a command to a stream of strings, with pre- and postprocessing if needed"
-    oper = parse_operation_pipe(command)
-    oper = preprocess_operation(oper)
-    oper = postprocess_operation(oper)
+    oper = parse_operation_pipe(command, search_id)
+    oper = preprocess_operation(oper, search_id)
+    oper = postprocess_operation(oper, search_id)
     print('# ', oper)
 
     for t in oper(strs):
         print(t)
-
-
