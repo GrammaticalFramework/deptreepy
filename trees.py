@@ -163,9 +163,12 @@ def prune_subtrees_below(tree: Tree, depth: int) -> Tree:
 class DepTree(Tree):
     "depencency trees: rose trees with word lines as nodes"
     comments: list[str]
+    global_index: int = -2 # for Depsearch indexing (from original corpus)
+    context = None # for Depsearch context
     
     def __str__(self):
         lines = self.comments
+        lines.extend(self.print_context())
         lines.extend(self.prettyprint())
         return '\n'.join(lines)
 
@@ -184,7 +187,15 @@ class DepTree(Tree):
 
     def add_misc(self, s):
         self.root.MISC += '+' + s
-        
+
+    # for Depsearch context
+    def print_context(self):
+        if (self.context is None):
+            return []
+        pre_context_string = f"# pre_context = {self.context[0]}"
+        cen_context_string = f"# cen_context = {self.context[1]}"
+        post_context_string = f"# post_context = {self.context[2]}"
+        return [pre_context_string, cen_context_string, post_context_string]
 
     
 def build_deptree(ns: list[WordLine]) -> DepTree:
@@ -196,6 +207,22 @@ def build_deptree(ns: list[WordLine]) -> DepTree:
     try:
         root = [n for n in ns if n.HEAD == '0'][0]
         dt = build_subtree(ns, root)
+#        if len(dt) != len(ns):   # 7.1
+#            raise NotValidTree
+        return dt
+    except:
+        raise NotValidTree(str(ns))
+
+
+def build_deptree_for_depsearch(ns: list[WordLine], comm, global_index) -> DepTree:
+    "build a dependency tree from a list of word lines"
+    def build_subtree_for_depsearch(ns, root):
+        subtrees = [build_subtree_for_depsearch(ns, n) for n in ns if n.HEAD == root.ID]
+        return DepTree(root, subtrees, comm, global_index)
+    
+    try:
+        root = [n for n in ns if n.HEAD == '0'][0]
+        dt = build_subtree_for_depsearch(ns, root)
 #        if len(dt) != len(ns):   # 7.1
 #            raise NotValidTree
         return dt
