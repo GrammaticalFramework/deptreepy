@@ -11,10 +11,230 @@ from visualize_ud import conll2svg
 from udpipe2_client import process
 from yaml import safe_load
 from udpipe2_models import udpipe2_model
-
+import pickle
+from typing import List, Tuple, Dict, Any
+from collections import deque, defaultdict
+from pathlib import Path
 
 # not used, letting UD-Pipe do sentence splitting
 # from sentence_splitter import split_text_into_sentences
+
+TEMP_VOLUME_PATH = Path(__file__).resolve().parent.parent / Path("temp_volume")
+INTERMEDIATE_OUTPUT_PATH = TEMP_VOLUME_PATH / "intermediate_output"
+DEFAULT_CORPORA_DIR = Path(__file__).resolve().parent.parent / "corpora"
+
+def CoNLLUtoSentence(conllu_block: str) -> str:
+    "convert a CoNLL-U block (one or more sentences) to plain text"
+
+    def customwordlines2wordliness(lines: Iterable[WordLine]) -> Iterable[list[WordLine]]:
+        "convert a stream of wordlines into a stream of lists of wordlines"
+        oid = 0
+        stanza = []
+        for line in lines:
+            try:
+                id = ifint(line.ID)
+            except ValueError:
+                continue
+            if id > oid:
+                stanza.append(line)
+                oid = id
+            else:
+                yield stanza
+                stanza = [line]
+                oid = id
+        if stanza:
+            yield stanza
+
+    wordlines = conllu2wordlines(conllu_block.splitlines())
+    sentences = wordlines2sentences(customwordlines2wordliness(wordlines))
+    return " ".join(sentences)
+
+
+def get_context(
+    global_index: Iterable[int],
+    context_size: int = 0,
+    corpus: str = "example_corpus",
+    base_dir: str = DEFAULT_CORPORA_DIR,
+    search_id: str | None = None
+) -> List[Tuple[str, str, str]]:
+    """
+    Get the full text of a tree (or a subtree's ancestor) and the surrounding context.
+
+    (base_dir and corpus name is read from TEMP_VOLUME_PATH / Path(search_id) if search_id is specified)
+
+    Reads {base_dir}/{corpus}.csv as *text*, 
+    where sentences are in CoNLL-U format and an empty line separates sentences 
+    (and defines the global sentence index starting at 0).
+
+    For each central sentence index i in `global_index`, returns a tuple:
+      (preceding_context_text, central_sentence_text, following_context_text)
+
+    where:
+      - preceding_context_text includes up to `context_size` sentences before i
+      - following_context_text includes up to `context_size` sentences after i
+      - contexts are automatically clipped at corpus boundaries
+      - duplicates in `global_index` are preserved (same output repeated accordingly)
+    """
+    if search_id is not None:
+        temp_volume_path = TEMP_VOLUME_PATH / Path(search_id)
+    else:
+        temp_volume_path = TEMP_VOLUME_PATH
+
+    base_dir_pkl_path = temp_volume_path / Path("base_dir.pkl")
+    corpus_pkl_path = temp_volume_path / Path("corpus.pkl")
+    context_size_pkl_path = temp_volume_path / Path("context_size.pkl")
+
+    if os.path.exists(base_dir_pkl_path):
+        with open(base_dir_pkl_path, "rb") as f:
+            base_dir = pickle.load(f)
+    if os.path.exists(corpus_pkl_path):
+        with open(corpus_pkl_path, "rb") as f:
+            corpus = pickle.load(f)
+    if os.path.exists(context_size_pkl_path):
+        with open(context_size_pkl_path, "rb") as f:
+            context_size = pickle.load(f)
+    if context_size < 0:
+        raise ValueError("context_size must be >= 0")
+
+    indices = list(global_index)
+    if not indices:
+        return []
+    
+    # Keep duplicates: map each central index -> positions in output list
+    positions_by_central: Dict[int, List[int]] = defaultdict(list)
+    for pos, idx in enumerate(indices):
+        if idx < 0:
+            raise ValueError(f"global_index contains a negative sentence index: {idx}")
+        positions_by_central[idx].append(pos)
+
+    out: List[Tuple[str, str, str] | None] = [None] * len(indices)
+
+    # Rolling buffer of previous sentences (up to context_size): (sent_idx, sent_conllu_block)
+    prev_buf: deque[Tuple[int, str]] = deque(maxlen=context_size)
+
+    # Pending requests: central_idx -> data dict
+    # Each pending lives until we have read up to central_idx + context_size (or EOF).
+    pending: Dict[int, Dict[str, Any]] = {}
+    active_centrals: deque[int] = deque()  # centrals in increasing order as encountered
+
+    def _to_text(conllu_block: str) -> str:
+        # CoNLLUtoSentence is assumed to accept one or more sentences in CoNLL-U form
+        if not conllu_block:
+            return ""
+        return CoNLLUtoSentence(conllu_block)
+
+    def _join_sent_blocks(blocks: List[str]) -> str:
+        # Keep CoNLL-U sentence separation semantics: blank line between sentences
+        return "\n\n".join(b for b in blocks if b)
+
+    def _finalize(central_idx: int) -> None:
+        data = pending.pop(central_idx, None)
+        if data is None:
+            return
+
+        preceding_conllu = _join_sent_blocks(data["preceding_blocks"])
+        central_conllu = data["central_block"] + '\n'
+        following_conllu = _join_sent_blocks(data["following_blocks"])
+        triple = (_to_text(preceding_conllu), _to_text(central_conllu), _to_text(following_conllu))
+
+        for pos in positions_by_central.get(central_idx, []):
+            out[pos] = triple
+
+    file_path = Path(base_dir) / Path(f"{corpus}.csv")
+
+    # --- Stream parse sentence blocks (CoNLL-U separated by blank line) ---
+    current_lines: List[str] = []
+    sent_idx = 0
+
+    def _handle_sentence_block(block: str, idx: int) -> None:
+        nonlocal prev_buf, pending, active_centrals
+
+        # 1) For all currently pending centrals, add this as "following" if within window.
+        # Active centrals are those we've started (we saw the central sentence in the stream)
+        # and haven't expired yet.
+        # We also prune expired centrals from the left as we advance.
+        while active_centrals:
+            c0 = active_centrals[0]
+            if idx > c0 + context_size:
+                # already past its window; it should have been finalized earlier,
+                # but finalize defensively
+                _finalize(c0)
+                active_centrals.popleft()
+            else:
+                break
+
+        if context_size > 0 and active_centrals:
+            for c in active_centrals:
+                if c < idx <= c + context_size:
+                    pending[c]["following_blocks"].append(block)
+
+        # 2) If this sentence is requested as a central, start a pending window
+        if idx in positions_by_central and idx not in pending:
+            # Collect up to context_size preceding sentences from prev_buf
+            preceding_blocks = [b for (_i, b) in prev_buf]  # already clipped by deque maxlen
+            pending[idx] = {
+                "preceding_blocks": preceding_blocks,
+                "central_block": block,
+                "following_blocks": [],
+            }
+            active_centrals.append(idx)
+
+        # 3) If this sentence completes any window (idx == central + context_size), finalize.
+        if context_size >= 0 and active_centrals:
+            # Multiple centrals can complete at this idx
+            while active_centrals:
+                c0 = active_centrals[0]
+                if idx >= c0 + context_size:
+                    _finalize(c0)
+                    active_centrals.popleft()
+                else:
+                    break
+
+        # 4) Update rolling buffer
+        if context_size > 0:
+            prev_buf.append((idx, block))
+
+    with open(file_path, "r", encoding="utf-8", newline="") as f:
+        for raw_line in f:
+            line = raw_line.rstrip("\n")
+
+            # Sentence boundary: truly empty line after stripping whitespace.
+            # (If your CSV uses empty rows as sentence separators, this works.)
+            if line.strip() == "":
+                if current_lines:
+                    block = "\n".join(current_lines).strip()
+                    _handle_sentence_block(block, sent_idx)
+                    sent_idx += 1
+                    current_lines = []
+                else:
+                    # multiple blank lines: ignore
+                    continue
+            else:
+                current_lines.append(line)
+
+        # Flush last sentence if file doesn't end with blank line
+        if current_lines:
+            block = "\n".join(current_lines).strip()
+            _handle_sentence_block(block, sent_idx)
+            sent_idx += 1
+
+    # EOF: finalize any pending windows with truncated following context
+    while active_centrals:
+        c = active_centrals.popleft()
+        _finalize(c)
+
+    # Sanity: all requested indices should have been within range per your assumption
+    # but if not, raise a helpful error.
+    missing = [i for i, v in enumerate(out) if v is None]
+    if missing:
+        bad_idxs = sorted({indices[i] for i in missing})
+        raise IndexError(
+            "Some requested global_index values were not found in the corpus "
+            f"(out of range or parsing mismatch). Missing indices: {bad_idxs}"
+        )
+
+    # mypy: out is fully populated now
+    return out  # type: ignore[return-value]
 
 
 @dataclass
