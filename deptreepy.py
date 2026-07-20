@@ -33,6 +33,7 @@ if __name__ == '__main__':
         case 'help':
             print_help_message()
         case command:
-            execute_pipe_on_strings(sys.argv[1], sys.argv[2], sys.stdin)
+            search_id = sys.argv[2] if len(sys.argv) > 2 else None
+            execute_pipe_on_strings(sys.argv[1], search_id, sys.stdin)
             
 
