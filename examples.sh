@@ -15,17 +15,17 @@ cat FILE.conllu | ./deptreepy.py 'match_wordlines (NOT (POS PUNCT)) | ngram_stat
 echo "##statistics of tree configurations in terms of POS+DEPREL"
 cat FILE.conllu | ./deptreepy.py 'treetype_statistics POS DEPREL'
 
-echo "## cosine similarity of LEMMA for files ENG.conllu and FIN.conllu
+echo "## cosine similarity of LEMMA for files ENG.conllu and FIN.conllu"
 ./deptreepy.py cosine_similarity FEATS ENG.conllu FIN.conllu 
 
-echo "## cosine similarity of LEMMA, ignoring words whose POS is PUNCT
+echo "## cosine similarity of LEMMA, ignoring words whose POS is PUNCT"
 ./deptreepy.py cosine_similarity LEMMA -filter='NOT (POS PUNCT)' ENG.conllu FIN.conllu 
 
 echo "## sentences where lemma politi* occurs"
 cat FILE.conllu | ./deptreepy.py 'match_trees SEQUENCE_ (LEMMA politi*) | extract_sentences'
 
 echo "## trees where the subsequence be + a/an occurs"
-cat FILE.conllu | ./deptreepy.py 'match_trees SUBSEQUENCE (LEMMA be) (LEMMA a)
+cat FILE.conllu | ./deptreepy.py 'match_trees SUBSEQUENCE (LEMMA be) (LEMMA a)'
 
 echo "trees with a metadata field whose value starts with Wh"
 cat FILE.conllu | ./deptreepy.py 'match_trees METADATA *=?Wh*'
