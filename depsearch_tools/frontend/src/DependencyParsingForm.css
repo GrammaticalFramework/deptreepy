@@ -1,0 +1,68 @@
+.dependencyParsingFormDiv {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f4f6f7;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dependencyParsingFormDiv h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.textInput {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: 'Courier New', Courier, monospace;
+  margin-bottom: 1rem;
+  background-color: #fff;
+  color: #2c3e50;
+  resize: vertical;
+}
+
+.languageInput {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #fff;
+  color: #2c3e50;
+}
+
+.submitButton {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.submitButton:hover {
+  background-color: #2980b9;
+}
+
+.infoText {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #555;
+  background-color: #ecf0f1;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+}

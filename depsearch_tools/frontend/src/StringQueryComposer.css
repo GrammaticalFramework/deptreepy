@@ -1,0 +1,203 @@
+.queryComposerDiv {
+  width: 100%;
+  padding: 2rem 4%;
+  box-sizing: border-box;
+  background-color: #fafafa;
+  font-family: Arial, sans-serif;
+}
+
+.queryComposerDiv h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.corpusLabel {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.corpusDropdown {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contextSizeControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+}
+
+.searchByControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+}
+
+.searchByDropdown {
+  width: 140px;
+  height: 35px;
+  padding: 0.4rem 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.contextSizeInput {
+  width: 90px;
+  padding: 0.4rem 0.5rem;
+  font-size: 1rem;
+}
+
+.corpusDropdown:disabled,
+.searchByDropdown:disabled,
+.contextSizeInput:disabled {
+  background-color: #f0f0f0;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.addLineButton,
+.resetQueryButton,
+.submitQueryButton {
+  padding: 0.6rem 1.2rem;
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.resetQueryButton {
+  background-color: #95a5a6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.resetQueryButton:hover {
+  background-color: #7f8c8d;
+}
+
+.resetQueryButton:disabled {
+  background-color: #cfd4d5;
+  cursor: not-allowed;
+}
+
+.submitQueryButton {
+  background-color: #2ecc71;
+  color: white;
+  margin-top: 1rem;
+}
+
+.submitQueryButton:hover {
+  background-color: #27ae60;
+}
+
+.stopQueryButton {
+  background-color: #e67e22;
+  color: white;
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.stopQueryButton:hover {
+  background-color: #d35400;
+}
+
+.searchStringInputDiv {
+  margin-top: 1rem;
+}
+
+.searchStringInput {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.searchStringInput:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.searchStringInput:disabled {
+  background-color: #f0f0f0;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.corpusError {
+  color: #d35400;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.queryResultTable {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.queryResultTable table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  table-layout: fixed; /* Prevent content-driven expansion */
+}
+
+.queryResultTable th,
+.queryResultTable td {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  text-align: left;
+  vertical-align: top;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere; /* Break long tokens */
+  word-break: break-word;  /* Fallback for older browsers */
+
+  box-sizing: border-box;
+}
+
+.queryResultTable th:first-child,
+.queryResultTable td:first-child {
+  width: 60px;
+}
+
+.queryResultTable th:last-child,
+.queryResultTable td:last-child {
+  width: calc(100% - 60px);
+}
+
+.queryResultTable th {
+  background-color: #f0f0f0;
+}

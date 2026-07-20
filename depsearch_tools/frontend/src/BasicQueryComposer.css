@@ -1,0 +1,206 @@
+.queryComposerDiv {
+  width: 100%;
+  padding: 2rem 4%;
+  box-sizing: border-box;
+  background-color: #fafafa;
+  font-family: Arial, sans-serif;
+}
+
+.queryComposerDiv h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.corpusLabel {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.corpusDropdown {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.corpusDropdown:disabled,
+.contextSizeInput:disabled {
+  background-color: #f0f0f0;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.commandLine > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.commandDropdown,
+.queryInput {
+  padding: 0.5rem;
+  font-size: 1rem;
+  flex: 1 1 200px;
+}
+
+.queryInput {
+  min-width: 240px;
+}
+
+.commandDropdown:disabled,
+.queryInput:disabled {
+  background-color: #f0f0f0;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.inputFormatLabel,
+.outputFormatLabel {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.removeLineButton {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.removeLineButton:hover {
+  background-color: #c0392b;
+}
+
+.removeLineButton:disabled,
+.addLineButton:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.addLineButton,
+.resetQueryButton,
+.submitQueryButton {
+  padding: 0.6rem 1.2rem;
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-start; /* Align items to the left by default */
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem; /* Optional: adds space between buttons */
+}
+
+.contextSizeControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+}
+
+.contextSizeInput {
+  width: 90px;
+  padding: 0.4rem 0.5rem;
+  font-size: 1rem;
+}
+
+.addLineButton {
+  margin-left: auto; /* Push it to the right edge */
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.resetQueryButton {
+  background-color: #95a5a6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.submitQueryButton {
+  background-color: #2ecc71;
+  color: white;
+  margin-top: 1rem;
+}
+
+.addLineButton:hover {
+  background-color: #2980b9;
+}
+
+.resetQueryButton:hover {
+  background-color: #7f8c8d;
+}
+
+.resetQueryButton:disabled {
+  background-color: #cfd4d5;
+  cursor: not-allowed;
+}
+
+.submitQueryButton:hover {
+  background-color: #27ae60;
+}
+
+.stopQueryButton {
+  background-color: #e67e22;
+  color: white;
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.stopQueryButton:hover {
+  background-color: #d35400;
+}
+
+.corpusError,
+.pipelineError {
+  color: #d35400;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.queryResultTable {
+  margin-top: 2rem;
+}
+
+.queryResultTable table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.queryResultTable th,
+.queryResultTable td {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.queryResultTable th {
+  background-color: #f0f0f0;
+}

@@ -1,0 +1,28 @@
+.appContainer {
+  width: 100%;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
+  box-sizing: border-box;
+}
+
+.appContainer h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.advancedModeToggle {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+  color: #34495e;
+}
+
+.advancedModeToggle input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
