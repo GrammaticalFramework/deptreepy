@@ -324,6 +324,48 @@ def conllu2trees(lines: CoNLLU) -> Iterable[DepTree]:
             comms = []
             nodes = []
 
+
+def conllu2treeswithindex(search_id: str | None = None) -> Operation:
+    def _conllu2treeswithindex(lines: CoNLLU) -> Iterable[DepTree]:
+        comms = []
+        nodes = []
+        global_indexes = []
+        corpus = "example_corpus"
+
+        temp_volume_path = (TEMP_VOLUME_PATH / search_id) if search_id is not None else TEMP_VOLUME_PATH
+
+        corpus_pkl_path = temp_volume_path / "corpus.pkl"
+
+        if os.path.exists(corpus_pkl_path):
+            with open(corpus_pkl_path, "rb") as f:
+                corpus = pickle.load(f)
+
+        search_id_suffix = f"_{search_id}" if search_id is not None else ""
+        output_indices_pkl = INTERMEDIATE_OUTPUT_PATH / f"{corpus}_output_indices{search_id_suffix}.pkl"
+        if os.path.exists(output_indices_pkl):
+            with open(output_indices_pkl, "rb") as f:
+                global_indexes = pickle.load(f)
+
+        for line in lines:
+            if line.startswith('#'):
+                comms.append(line.strip())
+            elif line.strip():
+                t = read_wordline(line)
+                nodes.append(t)
+            else:
+                current_gb = global_indexes.pop(0) if global_indexes else -1
+                dt = build_deptree_for_depsearch(nodes, comms, current_gb)
+                yield dt
+                comms = []
+                nodes = []
+
+    return Operation(
+        _conllu2treeswithindex,
+        CoNLLU,
+        Iterable[DepTree],
+        "conllu2treeswithindex",
+        "convert a stream of lines into deptrees with global indexes",
+    )
             
 @operation
 def wordlines2wordliness(lines: Iterable[WordLine]) -> Iterable[list[WordLine]]:
@@ -356,12 +398,35 @@ def trees2strs(trees: Iterable[DepTree]) -> Iterable[str]:
         yield ''
 
 
+def treeswithindex2strs(search_id: str | None = None) -> Operation:
+    def _treeswithindex2strs(trees: Iterable[DepTree]) -> Iterable[str]:
+        "convert wordlines to tab-separated strings line by line, include context"
+        trees = list(trees) # change generator to list, may consider better solution later
+        global_indexes = [tree.global_index for tree in trees]
+        context = get_context(global_indexes, search_id=search_id)
+        count = 0
+        for tree in trees:
+            tree.context = context[count] if count < len(context) else None
+            count += 1
+            yield str(tree)
+            yield ''
+
+    return Operation(
+        _treeswithindex2strs,
+        Iterable[DepTree],
+        Iterable[str],
+        "treeswithindex2strs",
+        "convert wordlines to tab-separated strings line by line, include context",
+    )
+
+
 @operation
 def trees2wordliness(trees: Iterable[DepTree]) -> Iterable[list[WordLine]]:
     "convert a stream of deptrees to a stream of relabeled lists of wordlines"
     for tree in trees:
         tree = relabel_deptree(tree)
         yield tree.wordlines()
+
 
 @operation
 def trees2conllu(trees: Iterable[DepTree]) -> Iterable[str]:
@@ -400,6 +465,43 @@ def wordlines2sentences(wordliness: Iterable[list[WordLine]]) -> Iterable[str]:
 
 # operation that extracts a sentence from a dependency tree
 extract_sentences : Operation = pipe([trees2wordliness, wordlines2sentences])
+
+
+def extract_sentences_with_context(search_id: str | None = None, include_metadata: bool = False) -> Operation:
+    def _extract_sentences_with_context(trees: Iterable[DepTree]) -> Iterable[str]:
+        "extract sentences with context from a stream of trees, using the FORM fields"
+        trees = list(trees) # change generator to list, may consider better solution later
+        global_indexes = [tree.global_index for tree in trees]
+        context = get_context(global_indexes, search_id=search_id)
+        extracted_matches = extract_sentences(trees)
+        _include_metadata = include_metadata
+        count = 0
+        for extracted_match in extracted_matches:
+            pre_context, cen_context, post_context = context[count] if count < len(context) else (None, None, None)
+            if cen_context is not None:
+                cen_context = cen_context.replace(extracted_match, f"**{extracted_match}**")
+                complete_string = cen_context
+                if pre_context is not None:
+                    complete_string = pre_context + "\n" + complete_string
+                if post_context is not None:
+                    complete_string = complete_string + "\n" + post_context
+
+                if _include_metadata:
+                    complete_string = "\n".join(trees[count].comments) + "\n" + complete_string
+                yield complete_string
+                yield ''
+            else:
+                yield "OUT OF CONTEXT RANGE"
+                yield ''
+            count += 1
+
+    return Operation(
+        _extract_sentences_with_context,
+        Iterable[DepTree],
+        Iterable[str],
+        "extract_sentences_with_context",
+        "extract sentences with context from a stream of trees",
+    )
 
 
 @operation
