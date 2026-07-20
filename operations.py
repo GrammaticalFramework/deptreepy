@@ -503,6 +503,15 @@ def extract_sentences_with_context(search_id: str | None = None, include_metadat
         "extract sentences with context from a stream of trees",
     )
 
+@operation
+def extract_sentences_with_metadata(trees: Iterable[DepTree]) -> Iterable[str]:
+    "extract sentences with metadata from a stream of trees, using the FORM fields"
+    for tree in trees:
+        metadata_string = "\n".join(tree.comments)
+        sentence_string = ' '.join([word.FORM for word in tree.wordlines()])
+        yield metadata_string + '\n' + sentence_string
+        yield ''
+
 
 @operation
 def underscore_fields(fields: list[str]) -> Operation:
