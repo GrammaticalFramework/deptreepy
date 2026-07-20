@@ -1,5 +1,5 @@
 import argparse
-from utils import build_indexes, search
+from depsearch_tools.utils import build_indexes, search
 
 
 def main(args: argparse.Namespace) -> None:

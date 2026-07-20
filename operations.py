@@ -19,9 +19,9 @@ from pathlib import Path
 # not used, letting UD-Pipe do sentence splitting
 # from sentence_splitter import split_text_into_sentences
 
-TEMP_VOLUME_PATH = Path(__file__).resolve().parent.parent / Path("temp_volume")
+TEMP_VOLUME_PATH = Path(__file__).resolve().parent / "depsearch_tools" / Path("temp_volume")
 INTERMEDIATE_OUTPUT_PATH = TEMP_VOLUME_PATH / "intermediate_output"
-DEFAULT_CORPORA_DIR = Path(__file__).resolve().parent.parent / "corpora"
+DEFAULT_CORPORA_DIR = Path(__file__).resolve().parent / "corpora"
 
 def CoNLLUtoSentence(conllu_block: str) -> str:
     "convert a CoNLL-U block (one or more sentences) to plain text"

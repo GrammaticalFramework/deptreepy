@@ -8,10 +8,11 @@ import os
 import re
 import signal
 import uuid
+from pathlib import Path
 
-DEPTREEPY_PATH = "./deptreepy/deptreepy.py"
-CORPORA_DIR = "./corpora"
-VOLUME_DIR = "./temp_volume"
+DEPTREEPY_PATH = "./deptreepy.py"
+CORPORA_DIR = str(Path(__file__).resolve().parent / "corpora")
+VOLUME_DIR = str(Path(__file__).resolve().parent / "depsearch_tools" / "temp_volume")
 
 ALLOWED_LANGUAGES = {"eng", "fin"}
 # Creating API
@@ -366,9 +367,9 @@ async def dependency_parsing_response(
 
 
 # Serving static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory="depsearch_tools/static", html=True), name="static")
 
 # For client-side routing fallback (React SPA)
 @app.get("/{full_path:path}")
 def serve_react_app():
-    return FileResponse("static/index.html")
+    return FileResponse("depsearch_tools/static/index.html")
