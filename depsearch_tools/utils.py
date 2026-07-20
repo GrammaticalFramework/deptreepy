@@ -8,11 +8,11 @@ from pathlib import Path
 import glob
 import uuid
 
-from query import extract_query
+from depsearch_tools.query import extract_query
 
-DEFAULT_CORPORA_DIR = "./corpora"
+DEFAULT_CORPORA_DIR = str(Path(__file__).resolve().parent.parent / "corpora")
 KORPSEARCH_FOLDER = "./korpsearch"
-DEPTREEPY_FOLDER = "./deptreepy"
+DEPTREEPY_FOLDER = "."
 TEMP_VOLUME_PATH = Path(__file__).resolve().parent / Path("temp_volume")
 INTERMEDIATE_OUTPUT_PATH = TEMP_VOLUME_PATH / "intermediate_output"
 

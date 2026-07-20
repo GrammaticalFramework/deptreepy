@@ -1,3 +1,13 @@
+# base deptreepy
 drawsvg==2.3.0
 pyparsing==3.1.2
 PyYAML==6.0.1
+
+# depsearch
+# Pre-search: korp-search
+tqdm==4.67.1
+cython==3.0.11
+pyroaring==1.0.4
+# Web Interface
+uvicorn==0.32.1
+fastapi==0.112.2
