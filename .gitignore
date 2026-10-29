@@ -470,4 +470,5 @@ example.html
 
 # depsearch
 cache/
-corpora/
+corpora/*
+!corpora/.gitkeep
