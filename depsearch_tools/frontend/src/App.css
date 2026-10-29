@@ -14,15 +14,39 @@
   text-align: center;
 }
 
-.advancedModeToggle {
+.modeRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   margin-top: 1rem;
   margin-bottom: 2rem;
+}
+
+.advancedModeToggle {
+  display: flex;
+  align-items: center;
   font-size: 1rem;
   color: #34495e;
 }
 
 .advancedModeToggle input[type="checkbox"] {
   margin-right: 0.5rem;
+}
+
+.instructionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.instructionButton:hover {
+  background-color: #2980b9;
+  color: white;
 }
